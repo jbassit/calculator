@@ -28,14 +28,11 @@ const string LOG_ERROR = "Error: Argument must be a non negative real number";
 
 bool Operand::m_Combined = false;
 
-void atlasMaxShipDamage_f(vector<Operand*> &argList);
-
 static map<string, void(*)(vector<Operand*>&)> fncInit() { // initializes functions map with pre defined functions
 	map<string, void(*)(vector<Operand*>&)> temp;
 	temp[LOG_FNC] = &log10_f;
 	temp[LN_FNC] = &ln_f;
 	temp[RECT_PRISM_AREA] = &rectPrismArea_f;
-	temp[ATLAS_MAXSHIP_DMG] = &atlasMaxShipDamage_f;
 
 	return temp;
 }
@@ -96,7 +93,7 @@ void Operand::clearOpList(std::list<Operand*> &list)
 
 bool Operand::combExprOnly() const
 {
-	for (list<string>::const_iterator variter = m_Variables.begin(); variter != m_Variables.end(); variter++)
+	for (list<string>::const_iterator variter = m_Variables.begin(); variter != m_Variables.end(); ++variter)
 		if (*variter != COMBINATION_TOKEN)
 			return false;
 
@@ -105,7 +102,7 @@ bool Operand::combExprOnly() const
 
 bool Operand::containsCombToken() const
 {
-	for (list<string>::const_iterator variter = m_Variables.begin(); variter != m_Variables.end(); variter++)
+	for (list<string>::const_iterator variter = m_Variables.begin(); variter != m_Variables.end(); ++variter)
 		if (*variter == COMBINATION_TOKEN)
 			return true;
 
@@ -114,7 +111,7 @@ bool Operand::containsCombToken() const
 
 bool Operand::singleGroupExpr() const
 {
-	for (list<Operand*>::const_iterator groupiter = m_Group.begin(); groupiter != m_Group.end(); groupiter++)
+	for (list<Operand*>::const_iterator groupiter = m_Group.begin(); groupiter != m_Group.end(); ++groupiter)
 		if ((*groupiter)->m_GlobalExp)
 			return false;
 
@@ -129,9 +126,9 @@ bool Operand::sameVariables(const Operand &op1, const Operand &op2)
 	if (op1.m_Variables.size() != op2.m_Variables.size()) // no need to compare if operands have different number of variables
 		return false;
 
-	for (list<string>::const_iterator op1iter = op1.m_Variables.begin(); op1iter != op1.m_Variables.end(); op1iter++, op1expiter++)
+	for (list<string>::const_iterator op1iter = op1.m_Variables.begin(); op1iter != op1.m_Variables.end(); ++op1iter, ++op1expiter)
 	{
-		for (list<string>::const_iterator op2iter = op2.m_Variables.begin(); op2iter != op2.m_Variables.end() && !Match; op2iter++, op2expiter++)
+		for (list<string>::const_iterator op2iter = op2.m_Variables.begin(); op2iter != op2.m_Variables.end() && !Match; ++op2iter, ++op2expiter)
 			if ((*op1iter == *op2iter) && (**op1expiter == **op2expiter)) // checks if both variables are identical
 				Match = true;
 
@@ -216,9 +213,9 @@ bool Operand::sameGroup(const Operand &op1, const Operand &op2)
 	if (grp1.size() != grp2.size())
 		return false;
 
-	for (list<Operand*>::const_iterator op1iter = grp1.begin(); op1iter != grp1.end(); op1iter++)
+	for (list<Operand*>::const_iterator op1iter = grp1.begin(); op1iter != grp1.end(); ++op1iter)
 	{
-		for (list<Operand*>::const_iterator op2iter = grp2.begin(); op2iter != grp2.end() && !Match; op2iter++)
+		for (list<Operand*>::const_iterator op2iter = grp2.begin(); op2iter != grp2.end() && !Match; ++op2iter)
 			if (**op1iter == **op2iter) // attempts to map identical combinatorial groups from both lists
 				Match = true;
 
@@ -232,7 +229,7 @@ bool Operand::sameGroup(const Operand &op1, const Operand &op2)
 
 bool Operand::containsCombToken(const Operand &op)
 {
-	for (list<string>::const_iterator variter = op.m_Variables.begin(); variter != op.m_Variables.end(); variter++)
+	for (list<string>::const_iterator variter = op.m_Variables.begin(); variter != op.m_Variables.end(); ++variter)
 		if (*variter == COMBINATION_TOKEN)
 			return true;
 
@@ -314,7 +311,7 @@ bool Operand::operator==(const double value) const
 
 void Operand::copyOpList(std::list<Operand *> &dest, const std::list<Operand *> &source)
 {
-	for (list<Operand*>::const_iterator iter = source.begin(); iter != source.end(); iter++)
+	for (list<Operand*>::const_iterator iter = source.begin(); iter != source.end(); ++iter)
 		dest.push_back(new Operand(**iter));
 }
 
@@ -388,7 +385,7 @@ void Operand::simpZero(Operand &op)
 			iter = op.m_Group.erase(iter);
 		}
 		else
-			iter++;
+			++iter;
 	}
 }
 
@@ -447,7 +444,7 @@ void Operand::clearGlobalExpGroup()
 			iter = m_Group.erase(iter);
 		}
 		else
-			iter++;
+			++iter;
 	}
 }
 
@@ -465,8 +462,8 @@ void Operand::clearGlobalExpCombGroup()
 		}
 		else
 		{
-			iter++;
-			variter++;
+			++iter;
+			++variter;
 		}
 	}
 }
@@ -515,7 +512,7 @@ list<Operand*> Operand::getCombExprs(const Operand &op)
 	list<Operand*> ls;
 
 	list<string>::const_iterator variter = op.m_Variables.begin();
-	for (list<Operand*>::const_iterator iter = op.m_VarExponent.begin(); iter != op.m_VarExponent.end(); iter++, variter++)
+	for (list<Operand*>::const_iterator iter = op.m_VarExponent.begin(); iter != op.m_VarExponent.end(); ++iter, ++variter)
 		if (*variter == COMBINATION_TOKEN) // adds reference of combinatorial expression to the list
 			ls.push_back(*iter);
 
@@ -568,11 +565,11 @@ Operand Operand::combineGlobalExpOps(const Operand &op1, const Operand &op2)
 					listSimplified = true;
 				}
 				if (!listSimplified) {
-					rightiter++;
+					++rightiter;
 				}
 			}
 			m_Combined = false;
-			leftiter++;
+			++leftiter;
 		}
 	} while (listSimplified);
 
@@ -595,7 +592,7 @@ Operand Operand::combineGlobalExpOps(const Operand &op1, const Operand &op2)
 		}
 	}
 
-	for (list<Operand*>::iterator iter = leftpart.begin(); iter != leftpart.end(); iter++) // appends all remaining expressions from left list
+	for (list<Operand*>::iterator iter = leftpart.begin(); iter != leftpart.end(); ++iter) // appends all remaining expressions from left list
 	{
 		if (!(**iter == 1)) // ignore any simplifications that resulted in 1
 		{
@@ -603,7 +600,7 @@ Operand Operand::combineGlobalExpOps(const Operand &op1, const Operand &op2)
 			result.m_VarExponent.push_back(new Operand(**iter));
 		}
 	}
-	for (list<Operand*>::iterator iter = rightpart.begin(); iter != rightpart.end(); iter++) // appends all remaining expressions from right list
+	for (list<Operand*>::iterator iter = rightpart.begin(); iter != rightpart.end(); ++iter) // appends all remaining expressions from right list
 	{
 		if (!(**iter == 1)) // ignore any simplifications that resulted in 1, although this check should not be needed on rightpart
 		{
@@ -627,7 +624,7 @@ Operand Operand::combineOps(const Operand &left, const Operand &right)
 	result.clearGroup(); // removes rest of the sum, leaving just the head
 	list<string>::const_iterator sourcevariter = right.m_Variables.begin();
 	for (list<Operand*>::const_iterator sourceiter = right.m_VarExponent.begin(); //iterates through variables of source operand
-		sourceiter != right.m_VarExponent.end(); sourceiter++, sourcevariter++)
+		sourceiter != right.m_VarExponent.end(); ++sourceiter, ++sourcevariter)
 	{
 		uniquevar = true;
 		list<string>::iterator destvariter = result.m_Variables.begin();
@@ -695,8 +692,8 @@ Operand Operand::combineOps(const Operand &left, const Operand &right)
 					uniquevar = false;
 				}
 			if (!removedItems) {
-				destiter++;
-				destvariter++;
+				++destiter;
+				++destvariter;
 			}
 		}
 		if (uniquevar) // case where variable is unique, added to list of variables
@@ -752,7 +749,7 @@ Operand operator+(const Operand &op1, const Operand &op2)
 		Operand::simpZero(result); // simplifies any resulting 0's
 
 	if (!op2.m_GlobalExp) // attempts to add remaining parts of right operand to left operand
-		for (list<Operand*>::const_iterator rightiter = op2.m_Group.begin(); rightiter != op2.m_Group.end(); rightiter++)
+		for (list<Operand*>::const_iterator rightiter = op2.m_Group.begin(); rightiter != op2.m_Group.end(); ++rightiter)
 			result = result + **rightiter;
 
 	return result;
@@ -822,13 +819,13 @@ Operand operator*(const Operand &op1, const Operand &op2)
 		result = Operand::combineOps(templeft, tempright); // combine heads of both operands
 
 														   // takes cross product
-		for (list<Operand*>::const_iterator leftiter = left.m_Group.begin(); leftiter != left.m_Group.end(); leftiter++)
+		for (list<Operand*>::const_iterator leftiter = left.m_Group.begin(); leftiter != left.m_Group.end(); ++leftiter)
 			result = result + (**leftiter * tempright);
 
-		for (list<Operand*>::const_iterator rightiter = right.m_Group.begin(); rightiter != right.m_Group.end(); rightiter++)
+		for (list<Operand*>::const_iterator rightiter = right.m_Group.begin(); rightiter != right.m_Group.end(); ++rightiter)
 		{
 			result = result + (templeft * **rightiter);
-			for (list<Operand*>::const_iterator leftiter = left.m_Group.begin(); leftiter != left.m_Group.end(); leftiter++)
+			for (list<Operand*>::const_iterator leftiter = left.m_Group.begin(); leftiter != left.m_Group.end(); ++leftiter)
 				result = result + (**leftiter * **rightiter);
 		}
 	}
@@ -848,15 +845,15 @@ Operand operator*(const Operand &op1, const Operand &op2)
 		result = Operand::combineGlobalExpOps(templeft, tempright); // combines head of both operands
 
 																	// takes potential cross product
-		for (list<Operand*>::const_iterator leftiter = left.m_Group.begin(); leftiter != left.m_Group.end(); leftiter++)
+		for (list<Operand*>::const_iterator leftiter = left.m_Group.begin(); leftiter != left.m_Group.end(); ++leftiter)
 			if (!left.m_GlobalExp || (*leftiter)->m_GlobalExp)
 				result = result + (**leftiter * tempright);
 
-		for (list<Operand*>::const_iterator rightiter = right.m_Group.begin(); rightiter != right.m_Group.end(); rightiter++)
+		for (list<Operand*>::const_iterator rightiter = right.m_Group.begin(); rightiter != right.m_Group.end(); ++rightiter)
 		{
 			if (!right.m_GlobalExp || (*rightiter)->m_GlobalExp)
 				result = result + (templeft * **rightiter);
-			for (list<Operand*>::const_iterator leftiter = left.m_Group.begin(); leftiter != left.m_Group.end(); leftiter++)
+			for (list<Operand*>::const_iterator leftiter = left.m_Group.begin(); leftiter != left.m_Group.end(); ++leftiter)
 				if ((!left.m_GlobalExp || (*leftiter)->m_GlobalExp) && (!right.m_GlobalExp || (*rightiter)->m_GlobalExp))
 					result = result + (**leftiter * **rightiter);
 		}
@@ -907,7 +904,7 @@ Operand Operand::power(const Operand &op, const Operand &power)
 
 		list<string>::const_iterator variter = op.m_Variables.begin();
 		for (list<Operand*>::const_iterator iter = op.m_VarExponent.begin() // iterates through variables of operand
-			; iter != op.m_VarExponent.end(); iter++, variter++)
+			; iter != op.m_VarExponent.end(); ++iter, ++variter)
 		{
 			Operand *newop = NULL;
 			if (*variter == COMBINATION_TOKEN) // case where m_VarExponent is a whole expression rather than just exponent
@@ -1027,8 +1024,8 @@ void Operand::SimplifyVariableExp()
 				*this = *this * temp2; // multiplies this expression by the real number found amongst variables
 			}
 		if (!tokenSimplified) {
-			iter++;
-			varIter++;
+			++iter;
+			++varIter;
 		}
 	}
 
@@ -1047,10 +1044,10 @@ void Operand::cleanUpGlobalExpField()
 		if (m_GlobalExp) // recursively apply this if this exponent has a global exponent of its own
 			m_GlobalExp->cleanUpGlobalExpField();
 
-	for (list<Operand*>::iterator iter = m_Group.begin(); iter != m_Group.end(); iter++) // perform this operation on all members of the group
+	for (list<Operand*>::iterator iter = m_Group.begin(); iter != m_Group.end(); ++iter) // perform this operation on all members of the group
 		(*iter)->cleanUpGlobalExpField();
 
-	for (list<Operand*>::iterator iter = m_VarExponent.begin(); iter != m_VarExponent.end(); iter++) // perform this operation on exponents of all variables
+	for (list<Operand*>::iterator iter = m_VarExponent.begin(); iter != m_VarExponent.end(); ++iter) // perform this operation on exponents of all variables
 		(*iter)->cleanUpGlobalExpField();
 }
 
@@ -1107,7 +1104,7 @@ string Operand::getId() const
 		if (m_Value == -1) // appends negative sign if value is -1 and there is at least one variable
 			output += "-";
 
-	for (list<Operand*>::const_iterator expiter = m_VarExponent.begin(); expiter != m_VarExponent.end(); expiter++, variter++) // iterates through variables
+	for (list<Operand*>::const_iterator expiter = m_VarExponent.begin(); expiter != m_VarExponent.end(); ++expiter, ++variter) // iterates through variables
 	{
 		if (validateDigit(*variter) && ((m_Value != 1 && m_Value != -1) || strtod(variter->c_str(), NULL) < 0)) // appends open parenthesis if magnitude does not equal to 1 or -1 and this "variable" is a real number or "variable" is a negative
 			output += "(";
@@ -1135,7 +1132,7 @@ string Operand::getId() const
 			output += ")";
 	}
 
-	for (list<Operand*>::const_iterator iter = m_Group.begin(); iter != m_Group.end(); iter++) // iterates through associated group
+	for (list<Operand*>::const_iterator iter = m_Group.begin(); iter != m_Group.end(); ++iter) // iterates through associated group
 	{
 		if (((*iter)->m_GlobalExp || containsCombToken(*this)) && (*iter)->m_Value < 0) // appends operand to its special output if it has global exponent or expression has combinatorial token and less than 0 magnitude
 			unrelatedgroup += (*iter)->getId();
@@ -1313,47 +1310,4 @@ void ln_f(vector<Operand*> &argList) { // calculates log of base e (natural log)
 		throw LOG_ERROR;
 
 	*temp = log(val);
-}
-
-void atlasMaxShipDamage_f(vector<Operand*> &argList) { // presonal use
-	Operand points, damage, max = 0, temp, damagePoints, crewPoints;
-
-	if (argList.size() != 2)
-		throw BAD_ARG_SIZE;
-
-	if (*argList[0] % 2 == 0) {
-		points = *argList[0];
-		damage = 1;
-	}
-	else {
-		points = (*argList[0] - 1);
-		damage = 1.05;
-	}
-
-	while (stoi(points.getId()) > 0) {
-		temp = 160 * (*argList[1] + points / 2)*damage;
-		if (stoi(temp.getId()) > stoi(max.getId())) {
-			max = temp;
-			damagePoints = *argList[0] - points;
-		}
-
-		if (floor(floor(stod(crewPoints.getId())) + 0.75)) {
-			crewPoints = crewPoints + 1;
-			points = points - 1;
-			damage = damage + 0.05;
-		}
-		else {
-			if (points - 2 != -1) {
-				crewPoints = crewPoints + 2;
-				points = points - 2;
-				damage = damage + 0.1;
-			}
-			else {
-				damage = damage + 0.05;
-				points = points - 1;
-			}
-		}
-	}
-	argList[0]->setCustomDesc("Damage: " + max.getId() + ", Damage Points: " + damagePoints.getId() + ", Cannons: " + (*argList[1] + (*argList[0]-damagePoints)/2).getId());
-	*argList[0] = damagePoints;
 }
