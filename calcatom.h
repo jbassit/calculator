@@ -14,7 +14,6 @@ const std::string COMBINATION_TOKEN = "<>"; // denotes variable which is another
 const std::string LOG_FNC = "log";
 const std::string LN_FNC = "ln";
 const std::string RECT_PRISM_AREA = "rectprismarea";
-const std::string ATLAS_MAXSHIP_DMG = "atlasmaxshipdmg";
 
 enum ops { POW, MULT, DIV, ADD, SUB, OPENP, CLOSEP, MODULO, COMMA }; // basic operators
 
@@ -474,4 +473,3 @@ private:
 void log10_f(std::vector<Operand*> &argList);
 void ln_f(std::vector<Operand*> &argList);
 void rectPrismArea_f(std::vector<Operand*> &argList);
-void atlasMaxShipDamage_f(std::vector<Operand*> &argList);
